@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+ android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical"
+ android:padding="12dp" android:layout_marginBottom="10dp" android:background="#191018">
+ <ImageView android:id="@+id/item_image" android:layout_width="match_parent" android:layout_height="150dp" android:scaleType="centerInside" android:contentDescription="Изображение предмета" />
+ <TextView android:id="@+id/item_title" android:layout_width="match_parent" android:layout_height="wrap_content" android:textColor="#FFFFFF" android:textStyle="bold" android:textSize="17sp" />
+ <TextView android:id="@+id/item_meta" android:layout_width="match_parent" android:layout_height="wrap_content" android:textColor="#FF657A" android:textSize="13sp" />
+ <TextView android:id="@+id/item_price" android:layout_width="match_parent" android:layout_height="wrap_content" android:textColor="#FFFFFF" android:textSize="15sp" android:paddingTop="5dp" />
+ <TextView android:id="@+id/item_auction" android:layout_width="match_parent" android:layout_height="wrap_content" android:textColor="#FFB4C0" android:textSize="12sp" />
+ <Button android:id="@+id/item_action" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Купить" android:textAllCaps="false" />
+</LinearLayout>

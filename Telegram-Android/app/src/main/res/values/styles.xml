@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="AppTheme" parent="android:Theme.Holo.NoActionBar">
+        <item name="android:windowBackground">#08080C</item>
+        <item name="android:colorAccent">#FF2341</item>
+        <item name="android:statusBarColor">#08080C</item>
+        <item name="android:navigationBarColor">#08080C</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+    <style name="DialogTheme" parent="android:Theme.Holo.Dialog">
+        <item name="android:windowBackground">#14141B</item>
+        <item name="android:textColor">#F2F2F7</item>
+        <item name="android:colorAccent">#FF2341</item>
+    </style>
+</resources>
