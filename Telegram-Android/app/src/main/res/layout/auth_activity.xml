@@ -43,6 +43,12 @@
             android:background="@drawable/bg_card"
             android:padding="18dp">
 
+            <LinearLayout
+                android:id="@+id/step_phone"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -95,47 +101,83 @@
                 android:textColor="#FFFFFF"
                 android:textStyle="bold" />
 
+            </LinearLayout>
+
             <LinearLayout
-                android:id="@+id/code_block"
+                android:id="@+id/step_code"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:visibility="gone"
-                android:paddingTop="18dp">
+                android:visibility="gone">
 
                 <TextView
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:paddingBottom="6dp"
-                    android:text="Код из Telegram"
+                    android:gravity="center"
+                    android:text="Введите код"
+                    android:textColor="#FFFFFF"
+                    android:textSize="22sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/code_info"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:paddingTop="8dp"
+                    android:paddingBottom="18dp"
                     android:textColor="#C9B8DB"
                     android:textSize="13sp" />
 
-                <EditText
-                    android:id="@+id/code"
+                <FrameLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
-                    android:background="@drawable/bg_input"
-                    android:padding="12dp"
-                    android:gravity="center"
-                    android:singleLine="true"
-                    android:inputType="number"
-                    android:maxLength="8"
-                    android:textColor="#FFFFFF"
-                    android:textColorHint="#5E5470"
-                    android:textSize="22sp"
-                    android:hint="•  •  •  •  •" />
+                    android:layout_height="58dp">
+
+                    <LinearLayout
+                        android:id="@+id/cells"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal"
+                        android:gravity="center" />
+
+                    <EditText
+                        android:id="@+id/code"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@android:color/transparent"
+                        android:textColor="#00000000"
+                        android:cursorVisible="false"
+                        android:inputType="number"
+                        android:maxLength="5" />
+                </FrameLayout>
 
                 <Button
                     android:id="@+id/btn_verify"
                     android:layout_width="match_parent"
                     android:layout_height="48dp"
+                    android:layout_marginTop="18dp"
                     android:background="@drawable/bg_button"
                     android:onClick="onVerify"
                     android:text="Войти"
                     android:textColor="#FFFFFF"
                     android:textStyle="bold" />
+
+                <Button
+                    android:id="@+id/btn_resend"
+                    android:layout_width="match_parent"
+                    android:layout_height="44dp"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/bg_button_ghost"
+                    android:onClick="onResend"
+                    android:textColor="#B98CFF" />
+
+                <Button
+                    android:layout_width="match_parent"
+                    android:layout_height="44dp"
+                    android:background="@drawable/bg_button_ghost"
+                    android:onClick="onChangeNumber"
+                    android:text="Изменить номер"
+                    android:textColor="#8A7A99" />
             </LinearLayout>
 
             <TextView

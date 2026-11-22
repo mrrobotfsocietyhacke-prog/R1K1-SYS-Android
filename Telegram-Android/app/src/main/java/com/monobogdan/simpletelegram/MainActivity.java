@@ -29,6 +29,7 @@ import com.monobogdan.simpletelegram.transport.Packets;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import com.monobogdan.simpletelegram.ui.*;
 import java.util.Iterator;
 import java.util.List;
 
@@ -156,27 +157,35 @@ public class MainActivity extends Activity {
             }).show();
     }
 
+    private TextView backButton;
+    private View subView;
+    private final String[] tabKeys = new String[] {"Profile", "Shop", "Gifts", "Chats"};
+    private final String[] tabTitles = new String[] {"Профиль", "Магазин", "Подарки", "Чаты"};
+    private final String[] tabLabels = new String[] {"Профиль", "Магазин", "Подарки", "Чаты"};
+    private final TextView[] navLabels = new TextView[4];
+    private final NavIcon[] navIcons = new NavIcon[4];
+
     private void buildShell() {
         root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setBackgroundColor(BG);
+        root.setBackgroundColor(Ui.BG);
 
         LinearLayout header = new LinearLayout(this);
         header.setOrientation(LinearLayout.HORIZONTAL);
         header.setGravity(Gravity.CENTER_VERTICAL);
-        header.setBackgroundColor(PANEL);
-        header.setPadding(dp(14), dp(6), dp(14), dp(6));
+        header.setBackgroundColor(Ui.CARD);
+        header.setPadding(dp(8), dp(8), dp(14), dp(8));
 
-        TextView logo = text("R1K1", 22, true);
-        logo.setTextColor(RED);
-        logo.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override public boolean onLongClick(View v) { showAdminPanel(); return true; }
+        backButton = Ui.text(this, "\u2039", 30, Ui.ACTIVE, true);
+        backButton.setPadding(dp(10), 0, dp(10), dp(4));
+        backButton.setVisibility(View.GONE);
+        backButton.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) { closeSub(); }
         });
-        header.addView(logo, new LinearLayout.LayoutParams(-2, -2));
+        header.addView(backButton, new LinearLayout.LayoutParams(-2, -2));
 
-        headerTitle = text("SYS // Chats", 16, true);
-        headerTitle.setGravity(Gravity.CENTER_VERTICAL);
-        headerTitle.setPadding(dp(14), 0, 0, 0);
+        headerTitle = Ui.text(this, "Чаты", 20, Ui.TEXT, true);
+        headerTitle.setPadding(dp(8), 0, 0, 0);
         headerTitle.setOnLongClickListener(new View.OnLongClickListener() {
             @Override public boolean onLongClick(View v) { showAdminPanel(); return true; }
         });
@@ -189,33 +198,123 @@ public class MainActivity extends Activity {
 
         LinearLayout nav = new LinearLayout(this);
         nav.setOrientation(LinearLayout.HORIZONTAL);
-        nav.setBackgroundColor(PANEL);
-        String[] tabs = new String[] {"Profile", "Shop", "Gifts", "Chats"};
-        for (final String tab : tabs) {
-            Button b = new Button(this);
-            b.setText(tab);
-            b.setTextSize(12);
-            b.setAllCaps(false);
-            b.setTextColor(tab.equals(activeTab) ? RED : TEXT);
-            b.setBackgroundColor(PANEL);
-            b.setOnClickListener(new View.OnClickListener() {
+        nav.setBackgroundColor(Ui.CARD);
+        int[] icons = new int[] {NavIcon.PROFILE, NavIcon.SHOP, NavIcon.GIFT, NavIcon.CHAT};
+        for (int i = 0; i < 4; i++) {
+            final String tab = tabKeys[i];
+            LinearLayout item = new LinearLayout(this);
+            item.setOrientation(LinearLayout.VERTICAL);
+            item.setGravity(Gravity.CENTER);
+            navIcons[i] = new NavIcon(this, icons[i]);
+            item.addView(navIcons[i], new LinearLayout.LayoutParams(dp(26), dp(26)));
+            navLabels[i] = Ui.text(this, tabLabels[i], 11, Ui.MUTED, false);
+            navLabels[i].setPadding(0, dp(2), 0, 0);
+            item.addView(navLabels[i], new LinearLayout.LayoutParams(-2, -2));
+            item.setOnClickListener(new View.OnClickListener() {
                 @Override public void onClick(View v) { showTab(tab); }
             });
-            nav.addView(b, new LinearLayout.LayoutParams(0, dp(54), 1));
+            nav.addView(item, new LinearLayout.LayoutParams(0, dp(58), 1));
         }
         root.addView(nav, new LinearLayout.LayoutParams(-1, -2));
         setContentView(root);
+        updateNav();
+    }
+
+    private void updateNav() {
+        for (int i = 0; i < 4; i++) {
+            boolean on = tabKeys[i].equals(activeTab);
+            navIcons[i].setActive(on);
+            navLabels[i].setTextColor(on ? Ui.ACTIVE : Ui.MUTED);
+        }
+    }
+
+    private String titleOf(String tab) {
+        for (int i = 0; i < 4; i++) if (tabKeys[i].equals(tab)) return tabTitles[i];
+        return tab;
+    }
+
+    private void openSub(String title, View v) {
+        content.removeAllViews();
+        subView = v;
+        content.addView(v, new LinearLayout.LayoutParams(-1, -1));
+        headerTitle.setText(title);
+        backButton.setVisibility(View.VISIBLE);
+    }
+
+    private void closeSub() {
+        if (subView == null) return;
+        showTab(activeTab);
+    }
+
+    @Override public void onBackPressed() {
+        if (subView != null) closeSub();
+        else super.onBackPressed();
     }
 
     private void showTab(String tab) {
         activeTab = tab;
+        subView = null;
+        if (backButton != null) backButton.setVisibility(View.GONE);
         content.removeAllViews();
-        headerTitle.setText("SYS // " + tab);
+        headerTitle.setText(titleOf(tab));
+        updateNav();
         if ("Chats".equals(tab)) showChats();
         else if ("Profile".equals(tab)) showProfile();
         else if ("Shop".equals(tab)) showShop();
         else if ("Gifts".equals(tab)) showGifts();
     }
+
+    private void showProfile() {
+        content.addView(ProfileView.build(this, new ProfileView.Host() {
+            @Override public void openWallet(JSONObject me) { openSub("Деньги", WalletView.build(MainActivity.this, me)); }
+            @Override public void openSettings() { openSettingsScreen(); }
+            @Override public void openTrading() { startActivity(new Intent(MainActivity.this, TradingActivity.class)); }
+            @Override public void findUser() { showFindUser(); }
+            @Override public void emojiPacks() { showApiList("Emoji-паки", "/emoji/packs"); }
+            @Override public void createBot() { showCreateBot(); }
+            @Override public void logout() { confirmLogout(); }
+        }), new LinearLayout.LayoutParams(-1, -1));
+    }
+
+    private void openSettingsScreen() {
+        openSub("Настройки", SettingsView.build(this, new SettingsView.Host() {
+            @Override public void connectTdsrv() { showTdsrvDialog(); }
+            @Override public void disconnectTdsrv() {
+                Configuration.ApplicationConfiguration cfg = Configuration.getInstance().getApplicationConfiguration();
+                cfg.tdsrvAddress = null;
+                cfg.tdsrvKey = null;
+                Configuration.getInstance().save();
+                ClientManager.getCurrent().setLegacyServer(null, null);
+                openSettingsScreen();
+            }
+            @Override public void logout() { confirmLogout(); }
+        }));
+    }
+
+    private void showFindUser() {
+        final EditText id = new EditText(this);
+        id.setSingleLine(true);
+        id.setInputType(InputType.TYPE_CLASS_NUMBER);
+        id.setHint("ID пользователя");
+        new AlertDialog.Builder(this).setTitle("Найти профиль").setView(id)
+            .setNegativeButton("Отмена", null)
+            .setPositiveButton("Загрузить", new DialogInterface.OnClickListener() {
+                @Override public void onClick(DialogInterface dialog, int which) { loadProfile(id.getText().toString()); }
+            }).show();
+    }
+
+    private void showShop() {
+        content.addView(ShopView.build(this, new Runnable() {
+            @Override public void run() { startActivity(new Intent(MainActivity.this, TradingActivity.class)); }
+        }), new LinearLayout.LayoutParams(-1, -1));
+    }
+
+    private void showGifts() {
+        content.addView(GiftsView.build(this), new LinearLayout.LayoutParams(-1, -1));
+    }
+
+
+
 
     private void showTdsrvSetup() {
         LinearLayout panel = vertical();
@@ -314,108 +413,7 @@ public class MainActivity extends Activity {
         return v.length() == 0 ? def : v;
     }
 
-    private void showProfile() {
-        ScrollView scroll = new ScrollView(this);
-        LinearLayout panel = vertical();
-        scroll.setBackgroundColor(BG);
-        scroll.addView(panel);
-        TextView title = text("R1K1.SYS // PROFILE", 20, true);
-        title.setTextColor(RED);
-        addRow(panel, title);
-        final LinearLayout card = vertical();
-        addRow(panel, card);
-        addRow(panel, button("Продать NFT / подарок", new Runnable() {
-            @Override public void run() {
-                Intent intent = new Intent(MainActivity.this, TradingActivity.class);
-                intent.putExtra("open_sell", true);
-                startActivity(intent);
-            }
-        }));
-        addRow(panel, button("Найти профиль по ID", new Runnable() {
-            @Override public void run() {
-                final EditText id = new EditText(MainActivity.this);
-                id.setSingleLine(true);
-                id.setInputType(InputType.TYPE_CLASS_NUMBER);
-                id.setHint("Telegram ID");
-                new AlertDialog.Builder(MainActivity.this).setTitle("ID пользователя").setView(id)
-                    .setNegativeButton("Отмена", null)
-                    .setPositiveButton("Загрузить", new DialogInterface.OnClickListener() {
-                        @Override public void onClick(DialogInterface dialog, int which) { loadProfile(id.getText().toString()); }
-                    })
-                    .show();
-            }
-        }));
-        addRow(panel, button("Emoji-паки", new Runnable() {
-            @Override public void run() { showApiList("Emoji-паки", "/emoji/packs"); }
-        }));
-        addRow(panel, button("R1K1 Father — создать бота", new Runnable() {
-            @Override public void run() { showCreateBot(); }
-        }));
-        addRow(panel, button("Выйти из аккаунта", new Runnable() {
-            @Override public void run() { confirmLogout(); }
-        }));
-        content.addView(scroll, new LinearLayout.LayoutParams(-1, -1));
-        loadMyProfile(card);
-    }
-
     /** Профиль берётся только с сервера (GET /me). Ничего не выдумывается на клиенте. */
-    private void loadMyProfile(final LinearLayout card) {
-        card.removeAllViews();
-        addRow(card, text("Загрузка профиля…", 14, false));
-        ClientManager.getCurrent().apiGetRaw("/me", new ClientManager.ApiCallback() {
-            @Override public void onResult(final int code, final String body) {
-                runOnUiThread(new Runnable() {
-                    @Override public void run() {
-                        if (!"Profile".equals(activeTab)) return;
-                        card.removeAllViews();
-                        if (code == 200) {
-                            try { renderProfile(card, new JSONObject(body)); return; }
-                            catch (Exception e) { addRow(card, text("Не удалось прочитать ответ сервера.", 14, false)); }
-                        } else if (code != 401) {
-                            addRow(card, text(ClientManager.errorText(code, body), 14, false));
-                        }
-                        addRow(card, button("Повторить", new Runnable() {
-                            @Override public void run() { loadMyProfile(card); }
-                        }));
-                    }
-                });
-            }
-        });
-    }
-
-    private void renderProfile(LinearLayout card, JSONObject o) {
-        String username = field(o, "username", "");
-        String id = field(o, "tg_id", "");
-        String display = username.length() > 0 ? "@" + username.replace("@", "") : (id.length() > 0 ? "ID " + id : "—");
-        String initial = username.length() > 0 ? username.replace("@", "").substring(0, Math.min(1, username.replace("@", "").length())).toUpperCase() : "◉";
-
-        TextView avatar = text(initial, 54, true);
-        avatar.setGravity(Gravity.CENTER);
-        avatar.setTextColor(RED);
-        addRow(card, avatar);
-
-        LinearLayout nameRow = new LinearLayout(this);
-        nameRow.setOrientation(LinearLayout.HORIZONTAL);
-        nameRow.setGravity(Gravity.CENTER);
-        nameRow.addView(text(display, 20, true));
-        if (o.optBoolean("is_verified", false)) {
-            TextView badge = text("✔", 20, true);
-            badge.setTextColor(Color.rgb(64, 160, 255));
-            nameRow.addView(badge);
-        }
-        addRow(card, nameRow);
-
-        String phone = field(o, "phone", "");
-        if (id.length() > 0) addRow(card, text("ID: " + id + (phone.length() > 0 ? "   |   " + phone : ""), 14, false));
-        addRow(card, text("Bytes: " + field(o, "statiki", "—") + "     Coins: " + field(o, "koiny", "—"), 16, true));
-        if (o.optBoolean("is_verified", false)) addRow(card, text("Подтверждённый аккаунт", 14, true));
-        if (o.optBoolean("premium", false)) addRow(card, text("♛ Premium", 14, true));
-        String nft = field(o, "nft", "");
-        if (nft.length() > 0) addRow(card, text("NFT: " + nft, 14, false));
-        String bio = field(o, "bio", "");
-        if (bio.length() > 0) addRow(card, text("Bio: " + bio, 14, false));
-    }
-
     private static String prettyJson(String raw) {
         try {
             JSONObject o = new JSONObject(raw);
@@ -443,54 +441,6 @@ public class MainActivity extends Activity {
                 });
             }
         });
-    }
-
-    private void showShop() {
-        LinearLayout panel = vertical();
-        ScrollView scroll = new ScrollView(this);
-        scroll.addView(panel);
-        TextView title = text("R1K1.SYS // SHOP", 20, true);
-        title.setTextColor(RED);
-        addRow(panel, title);
-        addRow(panel, button("Открыть R1K1 Market // Трейдинг", new Runnable() {
-            @Override public void run() { startActivity(new Intent(MainActivity.this, TradingActivity.class)); }
-        }));
-        addRow(panel, text("NFT: R1K1 • VOID • GHOST", 16, true));
-        addRow(panel, text("Оплата Bytes/Coins и наличие предметов зависят от API сервера.", 13, false));
-        addRow(panel, button("Загрузить магазин (GET /shop)", new Runnable() {
-            @Override public void run() { showApiList("Магазин", "/shop"); }
-        }));
-        addRow(panel, button("NFT-ники (GET /usernames/shop)", new Runnable() {
-            @Override public void run() { showApiList("NFT-ники", "/usernames/shop"); }
-        }));
-        addRow(panel, button("Купить username", new Runnable() {
-            @Override public void run() { showBuyUsername(); }
-        }));
-        addRow(panel, button("Крафт: 3 обычных NFT → 1 редкий", new Runnable() {
-            @Override public void run() { postJsonDialog("Крафт NFT", "/craft", "{\"count\":3}"); }
-        }));
-        content.addView(scroll, new LinearLayout.LayoutParams(-1, -1));
-    }
-
-    private void showGifts() {
-        LinearLayout panel = vertical();
-        ScrollView scroll = new ScrollView(this);
-        scroll.addView(panel);
-        TextView title = text("R1K1.SYS // GIFTS", 20, true);
-        title.setTextColor(RED);
-        addRow(panel, title);
-        addRow(panel, text("Rose  •  Heart  •  Star", 16, true));
-        addRow(panel, text("Редкости: Обычный, Необычный, Редкий, Эпический, Легендарный, Уникальный, Мега, Ультра", 13, false));
-        addRow(panel, button("Загрузить подарки (GET /gifts)", new Runnable() {
-            @Override public void run() { showApiList("Подарки", "/gifts"); }
-        }));
-        addRow(panel, button("Отправить подарок", new Runnable() {
-            @Override public void run() { showSendGift(); }
-        }));
-        addRow(panel, button("Розыгрыш — участвовать", new Runnable() {
-            @Override public void run() { showJoinGiveaway(); }
-        }));
-        content.addView(scroll, new LinearLayout.LayoutParams(-1, -1));
     }
 
     private void showJoinGiveaway() {
